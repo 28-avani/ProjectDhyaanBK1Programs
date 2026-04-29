@@ -8,7 +8,7 @@
 % 2. Reject common badElectrodes of all protocols
 % 3: Reject badElectrodes of G1
 
-% Option added to return PSD, power and topoplot data. Also to simply
+% Option added to return PSD, power and topoplot dagta. Also to simply
 % return these without displaying here.
 
 function [psdDataToReturn,powerDataToReturn,goodSubjectNameListsToReturn,topoplotDataToReturn,freqVals] = displayPowerDataAllSubjects(subjectNameLists,protocolName,analysisChoice,refChoice,badEyeCondition,badTrialVersion,badElectrodeRejectionFlag,stRange,freqRangeList,axisRangeList,cutoffList,useMedianFlag,hAllPlots,pairedDataFlag,displayDataFlag)
@@ -62,7 +62,7 @@ cLimsTopo = axisRangeList{3};
 %%%%%%%%%%%%%%%%%%%%%%%% Get electrode groups %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 gridType = 'EEG';
 capType = 'actiCap64_UOL';
-saveFolderName = 'savedData';
+saveFolderName = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset/savedData';
 
 [electrodeGroupList,groupNameList] = getElectrodeGroups(gridType,capType);
 numGroups = length(electrodeGroupList);

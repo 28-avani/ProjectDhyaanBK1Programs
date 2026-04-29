@@ -58,7 +58,7 @@ yLims = axisRangeList{2};
 % cLimsTopo = axisRangeList{3};
 capType = 'actiCap64_UOL';
 
-saveFolderName = 'savedData';
+saveFolderName = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset/data/ftData/connSavedData';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Generate plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if displayDataFlag
     if isempty(hAllPlots)

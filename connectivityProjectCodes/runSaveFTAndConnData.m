@@ -1,7 +1,7 @@
 % Save data in fieldtrip format
 
 % Mandatory fixed options
-folderSourceString = 'N:\Projects\ProjectDhyaan\BK1';
+folderSourceString = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset';
 % folderSourceString = 'D:\OneDrive - Indian Institute of Science\Supratim\Projects\ProjectDhyaan\BK1'; % Segmented data which is used for all analysis is kept at {folderSourceString}\data\segmentedData
 
 goodSubjectList = getGoodSubjectsBK1; % subjects for which data is computed
@@ -19,7 +19,7 @@ protocolNameList = [{'EO1'} {'EC1'} {'G1'} {'M1'} {'G2'} {'EO2'} {'EC2'} {'M2'}]
 useTheseIndices = 1:length(goodSubjectList);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%% Save Fieldtrip data %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveFTDataFlag=1;
+saveFTDataFlag=0;
 if saveFTDataFlag
     for i=1:length(useTheseIndices) %#ok<*UNRCH>
         subjectName = goodSubjectList{useTheseIndices(i)};
@@ -35,7 +35,7 @@ connMethod = 'ppc';
 stRange = [0.25 1.25];
 saveConnDataFlag=1;
 if saveConnDataFlag
-    for i=1:length(useTheseIndices) %#ok<*UNRCH>
+    parfor i=1:length(useTheseIndices) %#ok<*UNRCH>
         subjectName = goodSubjectList{useTheseIndices(i)};
         disp(['Analyzing for subject ' subjectName]);
         expDate = expDateList{strcmp(subjectName,allSubjectNames)};

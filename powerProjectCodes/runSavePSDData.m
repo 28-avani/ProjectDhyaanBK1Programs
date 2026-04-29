@@ -2,12 +2,12 @@
 % This program computes the PSD data for baseline and stimulus periods for
 % all the protocols and all the subjects and saves them locally.
 
-folderSourceString = 'N:\Projects\ProjectDhyaan\BK1'; % Segmented data which is used for all analysis is kept at {folderSourceString}\data\segmentedData
+folderSourceString = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset'; % Segmented data which is used for all analysis is kept at {folderSourceString}\data\segmentedData
 
 goodSubjectList = getGoodSubjectsBK1; % subjects for which data is computed
 [allSubjectNames,expDateList] = getDemographicDetails('BK1');
 
-saveFolderName = 'savedData'; % data is saved locally in this folder
+saveFolderName = fullfile(folderSourceString, 'savedData'); % data is saved locally in this folder
 
 %%%%%%%%%%%%%%% Choices for trial rejection based on eye data %%%%%%%%%%%%%
 % The program used to find bad electrodes and a common set of bad trials is
@@ -42,7 +42,7 @@ for i=1:length(useTheseIndices)
     
     [psdValsST,psdValsBL,freqVals,numTrials,badElectrodes] = getPSDData(subjectName,expDate,protocolNameList,folderSourceString,badEyeCondition,badTrialVersion,stRange);
 
-    makeDirectory(saveFolderName);
+    mkdir(saveFolderName);
     fileNameSave = fullfile(saveFolderName,[subjectName '_' badEyeCondition '_' badTrialVersion '_' num2str(1000*stRange(1)) '_' num2str(1000*stRange(2))]);
     save(fileNameSave,'psdValsST','psdValsBL','freqVals','numTrials','badElectrodes');
 end

@@ -1,5 +1,8 @@
 
 function saveConnData(subjectName,protocolNameList,badEyeCondition,badTrialVersion,ftDataFolder,connMethod,stRange)
+ft_warning('off', 'all');
+ft_notice('off', 'all');
+ft_info('off', 'all');
 
 if ~exist('stRange','var');         stRange = [0.25 1.25];              end
 
@@ -12,7 +15,7 @@ end
 
 function saveConnDataSingleProtocol(subjectName,protocolName,badEyeCondition,badTrialVersion,ftDataFolder,connMethod,stRange)
 
-savedDataFolder = 'savedData'; % local project directory
+savedDataFolder = fullfile(ftDataFolder, 'savedData');
 makeDirectory(savedDataFolder);
 savedDataFolder = fullfile(savedDataFolder,subjectName);
 makeDirectory(savedDataFolder);

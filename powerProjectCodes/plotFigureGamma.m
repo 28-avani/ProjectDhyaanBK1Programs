@@ -109,6 +109,7 @@ freqLims = axisRangeList{1};
 yLimsPSD = axisRangeList{2};
 cLimsTopo = axisRangeList{3};
 
+figure;
 hPSD = subplot(221);
 displayAndcompareData(hPSD,logPSDData,freqVals,displaySettings,yLimsPSD,1,useMedianFlag,~pairedDataFlag);
 xlim(hPSD,freqLims);
