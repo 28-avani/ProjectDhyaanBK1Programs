@@ -1,8 +1,7 @@
 % analysisChoice - 'st', 'bl' or 'combined'
 % refChoice - 'none' (show raw values) or a protocolName.
-% metricChoice - 1 for HFD, 2 for Hurst Exponent
-function [metricDataToReturn,goodSubjectNameListsToReturn,topoplotDataToReturn] = displayHFDDataAllSubjects(subjectNameLists,protocolName,analysisChoice,refChoice,badEyeCondition,badTrialVersion,badElectrodeRejectionFlag,stRange,freqRangeList,axisRangeList,cutoffList,useMedianFlag,hAllPlots,pairedDataFlag,displayDataFlag,metricChoice)
-
+% metricChoice - 1 for Exponent, 2 for Offset
+function [metricDataToReturn,goodSubjectNameListsToReturn,topoplotDataToReturn] = displayFOOOFDataAllSubjects(subjectNameLists,protocolName,analysisChoice,refChoice,badEyeCondition,badTrialVersion,badElectrodeRejectionFlag,stRange,freqRangeList,axisRangeList,cutoffList,useMedianFlag,hAllPlots,pairedDataFlag,displayDataFlag,metricChoice)
 if ~exist('protocolName','var');          protocolName='G1';            end
 if ~exist('analysisChoice','var');        analysisChoice='st';          end
 if ~exist('refChoice','var');             refChoice='none';             end
@@ -10,31 +9,26 @@ if ~exist('badEyeCondition','var');       badEyeCondition='ep';         end
 if ~exist('badTrialVersion','var');       badTrialVersion='v8';         end
 if ~exist('badElectrodeRejectionFlag','var'); badElectrodeRejectionFlag=1;  end
 if ~exist('stRange','var');               stRange = [0.25 1.25];        end
-
 if ~exist('freqRangeList','var')
-    freqRangeList{1} = [1 90]; 
+    freqRangeList{1} = [1 150]; % Default Broadband for FOOOF
 end
 numFreqRanges = length(freqRangeList);
-
 if ~exist('axisRangeList','var')
     axisRangeList{1} = [0 100];        % Bad Subjects %
-    axisRangeList{2} = [-0.1 0.1];     % Violin YLims
-    axisRangeList{3} = [-0.05 0.05];   % Topo cLims
+    axisRangeList{2} = [0.5 2.5];      % Violin YLims (Exponent values are typically 0.5-2.5)
+    axisRangeList{3} = [-0.15 0.15];   % Topo cLims
 end
 if ~exist('cutoffList','var')
     cutoffList = [3 15]; 
 end
 cutoffNumElectrodes = cutoffList(1);
 cutoffNumTrials = cutoffList(2);
-
 if ~exist('useMedianFlag','var');         useMedianFlag = 0;            end
 if ~exist('hAllPlots','var');             hAllPlots = [];               end
 if ~exist('pairedDataFlag','var');        pairedDataFlag = 0;           end
 if ~exist('displayDataFlag','var');       displayDataFlag = 1;          end
 if ~exist('metricChoice','var');          metricChoice = 1;             end
-
 metricColors = [0.8500 0.3250 0.0980; 0.9290 0.6940 0.1250];
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Display options %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 displaySettings.fontSizeLarge = 10;
 displaySettings.tickLengthMedium = [0.025 0];
@@ -42,14 +36,12 @@ displaySettings.colorNames(1,:) = [0.8 0 0.8];      % Purple
 displaySettings.colorNames(2,:) = [0.25 0.41 0.88]; % Cyan
 titleStr{1} = 'Meditators';
 titleStr{2} = 'Controls';
-
 %%%%%%%%%%%%%%%%%%%%%%%% Get electrode groups %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 gridType = 'EEG';
 capType = 'actiCap64_UOL';
-saveFolderName = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset/HFDData';
+saveFolderName = '/Users/avanisardana/IISc/6th_Sem/Neural_Signal_Processing/meditationDataset/FOOOFData';
 [electrodeGroupList,groupNameList] = getElectrodeGroups(gridType,capType);
 numGroups = length(electrodeGroupList);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Generate plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if displayDataFlag
     if isempty(hAllPlots)
@@ -67,7 +59,6 @@ if displayDataFlag
     end
     montageChanlocs = showElectrodeGroups(hTopo0(1,:),capType,electrodeGroupList,groupNameList);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%% Protocol Position %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 protocolNameList = [{'EO1'} {'EC1'} {'G1'} {'M1'} {'G2'} {'EO2'} {'EC2'} {'M2'}];
 protocolPos = find(strcmp(protocolNameList,protocolName));
@@ -76,24 +67,20 @@ if ~strcmp(refChoice,'none')
 else
     protocolPosRef = [];
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Get Data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 goodSubjectNameLists = getGoodSubjectNameList(subjectNameLists,badEyeCondition,badTrialVersion,stRange,protocolPos,protocolPosRef,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials,pairedDataFlag,saveFolderName);
-[hfdData, hfdDataRef, hurstData, hurstDataRef] = getMetricDataAllSubjects(goodSubjectNameLists,badEyeCondition,badTrialVersion,stRange,protocolPos,protocolPosRef,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials,saveFolderName);
-
+[expData, expDataRef, offData, offDataRef] = getMetricDataAllSubjects(goodSubjectNameLists,badEyeCondition,badTrialVersion,stRange,protocolPos,protocolPosRef,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials,saveFolderName);
 % Route data based on user toggle
 if metricChoice == 1
-    mainData = hfdData; mainDataRef = hfdDataRef; metricName = 'HFD'; metricColor = metricColors(1,:);
+    mainData = expData; mainDataRef = expDataRef; metricName = 'Exponent'; metricColor = metricColors(1,:);
 else
-    mainData = hurstData; mainDataRef = hurstDataRef; metricName = 'Hurst'; metricColor = metricColors(2,:);
+    mainData = offData; mainDataRef = offDataRef; metricName = 'Offset'; metricColor = metricColors(2,:);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%% Show Topoplots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 numElectrodes = size(mainData{1},1);
 percentData = zeros(2,numElectrodes);
 comparisonData = zeros(numFreqRanges,2,numElectrodes);
 topoplotDataToReturn = cell(2,numFreqRanges);
-
 for i=1:2
     if isempty(protocolPosRef)
         x = mainData{i};
@@ -131,7 +118,6 @@ for i=1:2
         end
     end
 end
-
 %%%%%%%%%%%%%%%%%%%%%% Plot the difference of topoplots %%%%%%%%%%%%%%%%%%%
 if displayDataFlag && ~isempty(mainData{1}) && ~isempty(mainData{2})
     axes(hTopo1(3));
@@ -143,11 +129,9 @@ if displayDataFlag && ~isempty(mainData{1}) && ~isempty(mainData{2})
         topoplot(data,montageChanlocs,'electrodes','on','maplimits',axisRangeList{3},'plotrad',0.6,'headrad',0.6); colorbar;
     end
 end
-
 %%%%%%%%%%%%%%%%%%%%%% Scatter & Violin Plots %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 metricDataToReturn = cell(numGroups,numFreqRanges);
 goodSubjectNameListsToReturn = cell(numGroups,2);
-
 for i=1:numGroups
     %%%%%%%%%%%%% Find bad subjects based on electrode cutoff %%%%%%%%%%%%%
     badSubjectPosList = cell(1,2);
@@ -167,37 +151,36 @@ for i=1:numGroups
         badSubjectPosList{2} = badSubjectPosList{1};
     end
     
-    %%%%%%%%%%%%% Scatter Plot (Hurst vs HFD) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%% Scatter Plot (Exponent vs Offset) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if displayDataFlag
         axes(hScatter(i)); hold on;
         for k=1:2
-            % Using FreqBand 1 (Broadband) for the scatter sanity check
-            tmpHFD = squeeze(hfdData{k}(electrodeGroupList{i}, 1, :));
-            tmpHurst = squeeze(hurstData{k}(electrodeGroupList{i}, 1, :));
+            tmpExp = squeeze(expData{k}(electrodeGroupList{i}, 1, :));
+            tmpOff = squeeze(offData{k}(electrodeGroupList{i}, 1, :));
             
             if ~isempty(protocolPosRef)
-                tmpHFD = tmpHFD - squeeze(hfdDataRef{k}(electrodeGroupList{i}, 1, :));
-                tmpHurst = tmpHurst - squeeze(hurstDataRef{k}(electrodeGroupList{i}, 1, :));
+                tmpExp = tmpExp - squeeze(expDataRef{k}(electrodeGroupList{i}, 1, :));
+                tmpOff = tmpOff - squeeze(offDataRef{k}(electrodeGroupList{i}, 1, :));
             end
             
-            subjHFD = mean(tmpHFD, 1, 'omitnan')';
-            subjHurst = mean(tmpHurst, 1, 'omitnan')';
+            subjExp = mean(tmpExp, 1, 'omitnan')';
+            subjOff = mean(tmpOff, 1, 'omitnan')';
             
-            subjHFD(badSubjectPosList{k}) = [];
-            subjHurst(badSubjectPosList{k}) = [];
+            subjExp(badSubjectPosList{k}) = [];
+            subjOff(badSubjectPosList{k}) = [];
             
-            scatter(subjHFD, subjHurst, 30, displaySettings.colorNames(k,:), 'filled', 'MarkerEdgeColor', 'k');
+            scatter(subjExp, subjOff, 30, displaySettings.colorNames(k,:), 'filled', 'MarkerEdgeColor', 'k');
         end
         title(groupNameList{i});
         if i==1
             if isempty(protocolPosRef)
-                xlabel('HFD'); ylabel('Hurst');
+                xlabel('Exponent'); ylabel('Offset');
             else
-                xlabel('\Delta HFD'); ylabel('\Delta Hurst');
+                xlabel('\Delta Exponent'); ylabel('\Delta Offset');
             end
         end
-        % Fit line reference for slope = -1
-        refline(-1, median(subjHurst + subjHFD, 'omitnan')); 
+        % Correlation line
+        refline; 
         hold off;
     end
     
@@ -264,18 +247,19 @@ for i=1:2
     badSubjectIndexTMP = zeros(1,numSubjects); badSubjectIndexRefTMP = zeros(1,numSubjects);
     for j=1:numSubjects
         subjectName = subjectNameLists{i}{j};
-        fileName = fullfile(saveFolderName,[subjectName '_' badEyeCondition '_' badTrialVersion '_' num2str(1000*stRange(1)) '_' num2str(1000*stRange(2)) '.mat']);
+        % CHANGED TO FOOOF .mat
+        fileName = fullfile(saveFolderName,[subjectName '_' badEyeCondition '_' badTrialVersion '_' num2str(1000*stRange(1)) '_' num2str(1000*stRange(2)) '_FOOOF.mat']);
         if ~exist(fileName, 'file'); badSubjectIndexTMP(j)=1; badSubjectIndexRefTMP(j)=1; continue; end
         
         tmpData = load(fileName);
-        [hfdTMP, ~] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials);
-        if isempty(hfdTMP)
+        [expTMP, ~] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials);
+        if isempty(expTMP)
             disp(['Not enough trials for subject: ' subjectName]);
             badSubjectIndexTMP(j)=1;
         end
         if ~isempty(protocolPosRef)
-            [hfdRefTMP, ~] = getMetricData(tmpData,protocolPosRef,'bl',badElectrodeRejectionFlag,cutoffNumTrials);
-            if isempty(hfdRefTMP)
+            [expRefTMP, ~] = getMetricData(tmpData,protocolPosRef,'bl',badElectrodeRejectionFlag,cutoffNumTrials);
+            if isempty(expRefTMP)
                 disp(['Not enough trials in ref period for subject: ' subjectName]);
                 badSubjectIndexRefTMP(j)=1;
             end
@@ -283,7 +267,6 @@ for i=1:2
     end
     badSubjectIndex{i} = badSubjectIndexTMP; badSubjectIndexRef{i} = badSubjectIndexRefTMP;
 end
-
 goodSubjectNameLists = cell(1,2);
 if ~pairedDataFlag
     for i=1:2
@@ -299,48 +282,48 @@ else
 end
 end
 
-function [hfdData, hfdDataRef, hurstData, hurstDataRef] = getMetricDataAllSubjects(subjectNameLists,badEyeCondition,badTrialVersion,stRange,protocolPos,protocolPosRef,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials,saveFolderName)
-hfdData = cell(1,2); hfdDataRef = cell(1,2);
-hurstData = cell(1,2); hurstDataRef = cell(1,2);
-
+function [expData, expDataRef, offData, offDataRef] = getMetricDataAllSubjects(subjectNameLists,badEyeCondition,badTrialVersion,stRange,protocolPos,protocolPosRef,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials,saveFolderName)
+expData = cell(1,2); expDataRef = cell(1,2);
+offData = cell(1,2); offDataRef = cell(1,2);
 for i=1:2
-    hfdTMP=[]; hfdRefTMP=[];
-    hurstTMP=[]; hurstRefTMP=[];
+    expTMP=[]; expRefTMP=[];
+    offTMP=[]; offRefTMP=[];
     for j=1:length(subjectNameLists{i})
         subjectName = subjectNameLists{i}{j};
-        tmpData = load(fullfile(saveFolderName,[subjectName '_' badEyeCondition '_' badTrialVersion '_' num2str(1000*stRange(1)) '_' num2str(1000*stRange(2)) '.mat']));
+        % CHANGED TO FOOOF .mat
+        tmpData = load(fullfile(saveFolderName,[subjectName '_' badEyeCondition '_' badTrialVersion '_' num2str(1000*stRange(1)) '_' num2str(1000*stRange(2)) '_FOOOF.mat']));
         
-        [tmpHFD, tmpHurst] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials);
-        hfdTMP = cat(3,hfdTMP,tmpHFD);
-        hurstTMP = cat(3,hurstTMP,tmpHurst);
+        [tmpExp, tmpOff] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials);
+        expTMP = cat(3,expTMP,tmpExp);
+        offTMP = cat(3,offTMP,tmpOff);
         
         if ~isempty(protocolPosRef)
-            [tmpHFDRef, tmpHurstRef] = getMetricData(tmpData,protocolPosRef,'bl',badElectrodeRejectionFlag,cutoffNumTrials);
-            hfdRefTMP = cat(3,hfdRefTMP,tmpHFDRef);
-            hurstRefTMP = cat(3,hurstRefTMP,tmpHurstRef);
+            [tmpExpRef, tmpOffRef] = getMetricData(tmpData,protocolPosRef,'bl',badElectrodeRejectionFlag,cutoffNumTrials);
+            expRefTMP = cat(3,expRefTMP,tmpExpRef);
+            offRefTMP = cat(3,offRefTMP,tmpOffRef);
         end
     end
-    hfdData{i} = hfdTMP; hfdDataRef{i} = hfdRefTMP;
-    hurstData{i} = hurstTMP; hurstDataRef{i} = hurstRefTMP;
+    expData{i} = expTMP; expDataRef{i} = expRefTMP;
+    offData{i} = offTMP; offDataRef{i} = offRefTMP;
 end
 end
 
-function [tmpHFD, tmpHurst] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials)
+function [tmpExp, tmpOff] = getMetricData(tmpData,protocolPos,analysisChoice,badElectrodeRejectionFlag,cutoffNumTrials)
 numTrials = tmpData.numTrials(protocolPos);
 badElectrodes = getBadElectrodes(tmpData.badElectrodes,badElectrodeRejectionFlag,protocolPos);
 if numTrials < cutoffNumTrials
-    tmpHFD = []; tmpHurst = [];
+    tmpExp = []; tmpOff = [];
 else
     if strcmpi(analysisChoice,'st')
-        tmpHFD = tmpData.hfdValsST{protocolPos}; tmpHurst = tmpData.hurstValsST{protocolPos};
+        tmpExp = tmpData.exponentST{protocolPos}; tmpOff = tmpData.offsetST{protocolPos};
     elseif strcmpi(analysisChoice,'bl')
-        tmpHFD = tmpData.hfdValsBL{protocolPos}; tmpHurst = tmpData.hurstValsBL{protocolPos};
+        tmpExp = tmpData.exponentBL{protocolPos}; tmpOff = tmpData.offsetBL{protocolPos};
     else
-        tmpHFD = (tmpData.hfdValsST{protocolPos} + tmpData.hfdValsBL{protocolPos})/2;
-        tmpHurst = (tmpData.hurstValsST{protocolPos} + tmpData.hurstValsBL{protocolPos})/2;
+        tmpExp = (tmpData.exponentST{protocolPos} + tmpData.exponentBL{protocolPos})/2;
+        tmpOff = (tmpData.offsetST{protocolPos} + tmpData.offsetBL{protocolPos})/2;
     end
-    tmpHFD(badElectrodes,:) = NaN;
-    tmpHurst(badElectrodes,:) = NaN;
+    tmpExp(badElectrodes,:) = NaN;
+    tmpOff(badElectrodes,:) = NaN;
 end
 end
 
